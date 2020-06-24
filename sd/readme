@@ -1,9 +1,6 @@
+## add to .bash_profile for the sd suite to work. 
 ## dir related
 dsPATH="$HOME/bin/sd"
 PATH=$dsPATH:$PATH
 source "$dsPATH/s"
-
-##
 alias sb="source ~/.bash_profile"
-alias cs="chmod 755"
-alias vs="vim script.sh"
