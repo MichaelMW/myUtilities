@@ -1,0 +1,36 @@
+#!/bin/bash
+
+#### list/delete directory shortcut
+#### config file from ~/bin/dir_shortcut/dir_shortcuts.tsv
+#### usage #########
+# s "w*"  # deletes alias w* (eg. w1, w2, w3)
+# s       # show all kw and dirs
+####################
+
+sdPath="$HOME/bin/sd"
+configFile="$sdPath/sd.dat"
+
+## check input args
+if [ $# -eq 0 ]; then
+	# no arg -> perform a lds -> list existing ds
+	while IFS=$'\t' read -r kw dir
+	do
+		# check kw
+		if $kw &>/dev/null ; then
+			echo "kw='$kw' is a reserved keyword, skipped. Please fix at $configFile";
+			continue
+		else
+			# alias kw
+			alias $kw="cd $dir"
+			echo "$kw  ->  $dir"
+		fi
+	done <"$configFile"
+elif [ $# -eq 1 ]; then
+	# 1st arg -> kw
+    kw="$1"
+	awk -F $'\t' -v kw="$kw" -v OFS="\t" '{if($1!~kw){print $0}}' $configFile > tmp; mv tmp $configFile
+else
+	echo "more than one kw detected"
+	echo "use quotation marks around a parttern input."
+	exit 
+fi
