@@ -1,0 +1,22 @@
+#!/bin/bash
+
+#### this script input two bedfiles, output pairwise jaccard distance
+
+inBeds=$@
+
+# header
+echo -ne "\t";
+echo $inBeds | sed 's/\ /\t/g' | sed 's/.bed//g'
+
+
+for inBedA in $inBeds; do
+	# row name
+	echo -ne $inBedA | sed 's/.bed//g'
+	# main loop
+	for inBedB in $inBeds; do 
+		j=`roundup.sh $(jaccardBed $inBedA $inBedB) 3`
+		echo -ne "\t"$j
+	done
+	echo -ne "\n"
+done
+

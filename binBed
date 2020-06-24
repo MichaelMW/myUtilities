@@ -1,0 +1,10 @@
+#!/bin/bash
+
+# input bedfile name, conform the bedfile length to bin size around the center of each item in input bedfile. 
+
+inBed=$1
+bin=$2
+
+#awk -v bin=$bin -v OFS="\t" '{center=int(($2+$3)/2); ext=int(bin/2); if (center-ext>=0) print $1, center-ext, center+ext }' $inBed
+
+awk -v bin=$bin -v OFS="\t" '{center=int(($2+$3)/2); ext=int(bin/2); $2=center-ext; $3=center+ext; print $0}' $inBed | awk -v OFS="\t" '{if($2<0){$2=0}; print}'

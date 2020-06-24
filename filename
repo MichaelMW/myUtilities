@@ -1,0 +1,7 @@
+#!/bin/bash
+
+fullName=$1
+baseName=`basename $fullName`
+fileName="${baseName%.*}"
+
+echo $fileName

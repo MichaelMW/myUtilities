@@ -1,0 +1,17 @@
+#!/bin/env python
+
+## input pred and label, output AUC from roc
+## eg   0.8 1
+##      0.9 0
+## ...
+
+
+from sys import stdin
+import numpy as np
+from sklearn import metrics
+
+pred, y= zip(*[map(float,line.split()) for line in stdin.readlines()])
+pred, y = np.array(pred), np.array(y)
+fpr, tpr, thresholds = metrics.roc_curve(y, pred, pos_label=1)
+print(metrics.auc(fpr, tpr))
+

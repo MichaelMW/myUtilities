@@ -1,0 +1,74 @@
+#!/usr/bin/env python
+from __future__ import division
+from sys import stdin
+from signal import signal, SIGPIPE, SIG_DFL
+import argparse
+
+parser = argparse.ArgumentParser()
+parser.add_argument("-p", "--pseudocount",
+				help="pseudocount mean")
+parser.add_argument("-c", "--counts", default = 0,
+				help="pseudocount count, as in occurrance.")
+parser.add_argument("-n", "--null", default = "Nan",
+				help="null string place holder.")
+args = parser.parse_args()
+
+if args.pseudocount:
+	p = float(args.pseudocount)
+else:
+	p = None
+global nh
+nh = args.null
+
+c = float(args.counts)
+if p == None and c != 0:
+	print("invalid p = {} and c = {}; when p is defined, c should not be 0".format(p, c))
+	exit()
+
+
+signal(SIGPIPE,SIG_DFL)
+
+def weightedMean(L, p, c):
+	if p==None:
+		if not L:
+			return nh
+		else:
+			return sum(L)/len(L)
+	else:
+		if not L:
+			return p
+		else:
+			return (sum(L) + p*c )/(len(L) + c)
+
+def mean(L):
+	if len(L):
+		return sum(L)/len(L)
+	else:
+		return nh
+
+def curate(L):
+	R = []
+	for l in L:
+		try:
+			R.append(float(l))
+		except ValueError:
+			continue
+	return R
+
+List=[]
+for line in stdin.readlines():
+    List.append(line.strip().split())
+
+zList = zip(*List)
+
+
+## output
+if zList:
+	#print '\t'.join(map(str, [mean(curate(f)) for f in zList]))
+	print('\t'.join(map(str, [weightedMean(curate(f), p, c) for f in zList])))
+else:
+	if p:
+		print(p)
+	else:
+		print(nh)
+

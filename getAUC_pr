@@ -1,0 +1,18 @@
+#!/bin/env python
+
+## input pred and label, output AUC from precision recall 
+## eg   0.8 1
+##      0.9 0
+## ...
+
+
+from sys import stdin
+import numpy as np
+from sklearn import metrics
+
+ROUND=2
+
+pred, y= zip(*[map(float,line.split()) for line in stdin.readlines()])
+pred, y = np.array(pred), np.array(y)
+score = metrics.average_precision_score(y, pred)
+print(round(score,ROUND))

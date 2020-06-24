@@ -1,0 +1,6 @@
+#!/bin/bash
+
+rowN=`wc -l < $1`
+colN=`head -n1 $1 | awk '{print NF}'`
+echo -e "$rowN\t$colN"
+
