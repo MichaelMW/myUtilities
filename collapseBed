@@ -3,7 +3,7 @@ from signal import signal, SIGPIPE, SIG_DFL
 from sys import stdin, stderr, argv
 from collections import defaultdict
 import argparse
-from statistics import mean, median, stdev
+from statistics import mean, median, stdev, StatisticsError
 
 # emulates mergeBed, -o -c, but entry can be overlapping, but not identical; default use first 3 cols as entry loci. but can use other combinations. (eg. collapsebed -e 1,2,3,6); can be single loci.
 
@@ -98,6 +98,8 @@ for entry in data.keys():
             colResult = eval("{}(colList)".format(method))
         except TypeError:
             colResult = eval("{}(map(float,colList))".format(method))
+        except StatisticsError:
+            colResult = "NA"
         if type(colResult) == list or type(colResult) == set:
             colResultText = ",".join(list(colResult))
         else:
