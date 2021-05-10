@@ -21,7 +21,7 @@ if [ $# -eq 0 ]; then
 			continue
 		else
 			# alias kw
-			alias $kw="cd $dir"
+			alias $kw="cd '$dir'"
 			echo "$kw  ->  $dir"
 		fi
 	done <"$configFile"
