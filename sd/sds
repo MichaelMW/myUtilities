@@ -30,7 +30,7 @@ if $kw &>/dev/null ; then
 else
 	echo "Setting directory shortcut:"
 	echo "$kw  ->  $dir"
-	alias $kw="cd \"$dir\""
+	alias $kw="cd '$dir'"
 	echo "source ~/.bash_profile"
 	echo "to refresh"
 fi
