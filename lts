@@ -1,0 +1,12 @@
+#!/bin/bash
+### get lastest changed files recursively
+
+NHEAD=10
+
+if [ $# -eq 0 ]; then
+	inDir="."
+else
+	inDir="$1"
+fi
+
+find $inDir -type f -print0 | xargs -0 stat --format '%Y :%y %n' | sort -nr | cut -d: -f2- | head -n $NHEAD
