@@ -22,7 +22,11 @@ parser.add_argument("-c", "--column",
 parser.add_argument("-o", "--operation",
                     help="Specify the operation that should be applied to -c. eg. list, set, len; sum, min, max, mean, median, stdev")
 parser.add_argument("-E", "--eval", action='store_true',
-                    help="flag eval mode for input args of entrycolumn, column and operation, eg. collapseBed -E -e '[1,2,3]' -c 'list(range(11,20)+[50])' -o '['mean']*10' ")
+                    help="flag eval mode for input args of entrycolumn, column and operation, eg. collapseBed -E -e '[1,2,3]' -c 'list(range(11,20)+[50])' -o \"['mean']*10\" ")
+parser.add_argument("-d", "--delimiter",
+                    help="Specify delimiter for the input file, default is tab")
+parser.add_argument("-v", "--verbose", action='store_true',
+                    help="Output debug info. default is false")
 args = parser.parse_args()
 
 
@@ -65,9 +69,14 @@ if args.entrycolumn:
     ecols = parseRange(args.entrycolumn, eval_flag=args.eval)
 else:
     ecols = [1, 2, 3]
+if args.delimiter:
+	delimiter = args.delimiter
+else:
+	delimiter = "\t"
 
-#print(args)
-#print(ecols, cols, methods)
+if args.verbose:
+	print(args)
+	print(ecols, cols, methods)
 
 data = defaultdict(list)
 # specified input
@@ -81,8 +90,8 @@ else:
 
 # arrange data from input
 for line in lines:
-    entry = tuple([line.split()[ecol-1] for ecol in ecols])
-    items = [line.split()[col-1] for col in cols]
+    entry = tuple([line.strip().split(delimiter)[ecol-1] for ecol in ecols])
+    items = [line.strip().split(delimiter)[col-1] for col in cols]
     data[entry].append(items)
 
 
