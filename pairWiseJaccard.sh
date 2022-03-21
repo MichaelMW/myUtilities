@@ -15,7 +15,7 @@ getJaccard () {
 f=($inFiles)
 for ((i = 0; i < ${#f[@]}; i++)); do
 	inA=${f[i]}
-	echo -ne "$inA\t"
+	echo -ne "$inA"
 	#for ((j = i + 1; j < ${#f[@]}; j++)); do
 	for ((j = 0; j < ${#f[@]}; j++)); do 
 		inB=${f[j]}
