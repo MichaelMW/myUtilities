@@ -19,6 +19,7 @@ signal(SIGPIPE,SIG_DFL)
 parser = argparse.ArgumentParser()
 parser.add_argument('-a', dest='inA', help='The first file.')
 parser.add_argument('-b', dest='inB', help='The second file.')
+parser.add_argument('-m', dest='mode', help='determine the key from (A), (B), (A-B), (B-A), (U)nion or (I)ntersect; default Union', default="U")
 parser.add_argument('-e1', dest='e1', default="1", help='Key column entries from the first files. Starts with 1, separated by commas,  eg. 1,2,3. Default 1.')
 parser.add_argument('-e2', dest='e2', default="1", help='Key column entries from the second files. Starts with 1, separated by commas, eg. 1,2,3. Default 1.')
 parser.add_argument('-c1', dest='c1', default="2", help='Value column entries from the first files. Starts with 1, separated by commas, eg. 1,2,3. Default 2.')
@@ -34,6 +35,7 @@ def arg2cols(string):
 ## args
 inA = args.inA
 inB = args.inB
+mode = args.mode.lower()
 e1 = arg2cols(args.e1)
 e2 = arg2cols(args.e2)
 c1 = arg2cols(args.c1)
@@ -62,7 +64,21 @@ def list2print(l):
 ## merge
 dA = file2dict(inA, e1, c1)
 dB = file2dict(inB, e2, c2)
-keyMerged = sorted(set(dA.keys()) | set(dB.keys()))
+if mode == "a":
+	keyMerged = sorted(set(dA.keys()))
+elif mode == "b":
+	keyMerged = sorted(set(dB.keys()))
+elif mode == "i" or mode == "intersect":
+	keyMerged = sorted(set(dA.keys()) & set(dB.keys()))
+elif mode == "a-b":
+	keyMerged = sorted(set(dA.keys()) - set(dB.keys()))
+elif mode == "b-a":
+	keyMerged = sorted(set(dB.keys()) - set(dA.keys()))
+elif mode =="u" or mode =="union":
+	keyMerged = sorted(set(dA.keys()) | set(dB.keys()))
+else:
+	print("Unrecognized mode={}".format(mode))
+	exit
 for keyM in keyMerged:
 	itemA = dA.get(keyM, filler)
 	itemB = dB.get(keyM, filler)
