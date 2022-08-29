@@ -20,10 +20,8 @@ for line in stdin.readlines():
 	Y.append(float(ls[1]))
 
 if mode=="2":
-	print(2)
 	co, pval = spearmanr(X,Y)
 	print('{}\t{}'.format(co, pval))
 else:
-	print(1)
 	co, pval = pearsonr(X,Y)
 	print('{}\t{}'.format(co, pval))
