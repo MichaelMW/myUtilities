@@ -70,13 +70,13 @@ if args.entrycolumn:
 else:
     ecols = [1, 2, 3]
 if args.delimiter:
-	delimiter = args.delimiter
+    delimiter = args.delimiter
 else:
-	delimiter = "\t"
+    delimiter = "\t"
 
 if args.verbose:
-	print(args)
-	print(ecols, cols, methods)
+    print(args)
+    print(ecols, cols, methods)
 
 data = defaultdict(list)
 # specified input
@@ -103,12 +103,15 @@ for entry in data.keys():
     lineResultList = []
     for i, colList in enumerate(listsByCol):
         method = methods[i]
-        try:  # if method doesn't concern float, like list, len, or set.
-            colResult = eval("{}(colList)".format(method))
-        except TypeError:
-            colResult = eval("{}(map(float,colList))".format(method))
-        except StatisticsError:
-            colResult = "NA"
+        if method=="first":
+            colResult = colList[0]
+        else:
+            try:  # if method doesn't concern float, like list, len, or set.
+                colResult = eval("{}(colList)".format(method))
+            except TypeError:
+                colResult = eval("{}(map(float,colList))".format(method))
+            except StatisticsError:
+                colResult = "NA"
         if type(colResult) == list or type(colResult) == set:
             colResultText = ",".join(list(colResult))
         else:
