@@ -51,5 +51,7 @@ aggfunc = args.aggfunc
 fill 	= args.fill
 
 df_wide = pd.pivot_table(df_long, index = index, columns = columns, values = values, aggfunc = aggfunc, fill_value = fill)
-df_wide = df_wide.reset_index().to_string(index=False)
+df_wide = df_wide.reset_index()
+df_wide.columns = ['_'.join(filter(None,col)).strip() for col in df_wide.columns.values]
+df_wide = df_wide.to_csv(index=False, sep="\t")
 print(df_wide)
