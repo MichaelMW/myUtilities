@@ -1,6 +1,10 @@
 #!/usr/bin/env python
 # encoding: utf-8
 
+###########
+###########
+## check out ./reshape.long2wide.py for a newer implementation
+## TODO get reshape.wide2long with https://pandas.pydata.org/docs/reference/api/pandas.wide_to_long.html#pandas.wide_to_long
 
 ## reshape from "varA1 varB1 val11" 
 ## to crosstable varA1 varA2 varA3 ...
