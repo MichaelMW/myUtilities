@@ -107,7 +107,8 @@ else:
 
 # arrange data from input
 for line in lines:
-	entry = tuple([line.strip().split(delimiter)[ecol-1] for ecol in ecols])
+	#print(len(line.strip().split(delimiter)))
+	entry = tuple([line.rstrip("\n").split(delimiter)[ecol-1] for ecol in ecols])
 	items = [line.strip().split(delimiter)[col-1] for col in cols]
 	data[entry].append(items)
 

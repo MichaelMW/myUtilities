@@ -4,6 +4,7 @@
 ### general machine learning quick check using gradient boosting. 
 ### supports classification/regression, validation, lasso, etc. 
 ### notice, importance always come from full model using all data. (CV is irrelevant here) 
+### notice, by default input ml needs to have rownames in the first column, header can have 1 fewer fields
 
 import numpy as np
 
@@ -23,6 +24,7 @@ parser.add_argument('-P', dest='predFile', default="predFile.tsv" , help='output
 parser.add_argument('-O', dest='plotFile', default="plotFile" , help='header name for the output AUC plot, only works for classification and when cvFold > 0! eg. -m classification -n 5 -O test. Default: plotFile')
 parser.add_argument('-L', dest='lasso', default=False , help='use lasso, default to False; otherwise use a number for alpha: 0 to 1; 0 for an ordinary least square, 1 for conanical L1 lasso. Default: False')
 parser.add_argument('-T', dest='transpose', action='store_true', default=False, help='transpose the data from using samples on the columns (and features/label on the rows) to samples on the rows(and features/label on the columns), Default=False')
+parser.add_argument('-s', dest='use_scale', default=False, help='scale the features by z = (x-u) / s per row (sample), default = False')
 args = parser.parse_args()
 
 ## check args
@@ -37,6 +39,7 @@ predFile = args.predFile
 plotFile = args.plotFile
 lasso = float(args.lasso) if args.lasso else False
 transpose = args.transpose
+use_scale = True if args.use_scale else False
 
 ## default values
 sep = "\t" # used to parse the inFile
@@ -63,6 +66,20 @@ fts = list(df.columns)
 fts.remove(label)
 X = df[fts]
 
+## pre-processing
+from sklearn.preprocessing import StandardScaler
+
+def preproc(X):
+	# z = (x-u)/s
+	print("scaling X...")
+	scaler = StandardScaler()
+	X_scaled = scaler.fit_transform(X)
+	X_scaled_df = pd.DataFrame(X_scaled, columns=X.columns)
+	return X_scaled_df
+
+if use_scale:
+	X = preproc(X)
+
 ## ML model
 from sklearn.ensemble import GradientBoostingClassifier, GradientBoostingRegressor
 if mode == "classification":
@@ -83,7 +100,28 @@ def go_lasso(X, y, alpha):
 	lassoFS.fit(X, y)
 	coefs = lassoFS.coef_
 	fts_ids = [int(i) for i, coef in enumerate(coefs) if coef!=0]
+	print(f"Lasso kept {len(fts_ids)} features")
 	return fts_ids
+
+
+# get performance
+from sklearn.metrics import confusion_matrix
+def get_performance(y, predp, threshold=0.5, mode="classification"):
+	if mode.upper().startswith("C"):
+		# Apply the threshold to get predicted classes
+		pred = (predp > threshold).astype(int)
+		# Calculate the confusion matrix
+		tn, fp, fn, tp = confusion_matrix(y, pred).ravel()
+		# Sensitivity (True Positive Rate)
+		sensitivity = tp / (tp + fn) if (tp + fn) != 0 else 0
+		# Specificity (True Negative Rate)
+		specificity = tn / (tn + fp) if (tn + fp) != 0 else 0
+		# AUC-ROC and AUC-PRC scores
+		auROC = roc_auc_score(y, predp)
+		auPRC = average_precision_score(y, predp)
+		# Return the list of performance metrics
+		performance_list = [sensitivity, specificity, auPRC, auROC]
+		return performance_list
 
 ## main
 
@@ -95,7 +133,7 @@ if cvFold > 0:
 	from sklearn.model_selection import KFold
 	kf = KFold(n_splits=cvFold, random_state=random_state, shuffle=True)
 	kf.get_n_splits(X)
-	s1s, s2s = [], []
+	s1s, s2s, s3s, s4s = [], [], [], []
 	preds, Ys = [], []
 	fold = 0
 	for train_index, test_index in kf.split(X):
@@ -110,8 +148,7 @@ if cvFold > 0:
 		pred = model.predict(X_test)
 		if mode == "classification" or "c" or "C":
 			predp = model.predict_proba(X_test)[:,1]
-			auROC = roc_auc_score(y_test, predp)
-			auPRC = average_precision_score(y_test, predp)
+			sensitivity, specificity, auPRC, auROC = get_performance(y_test, predp)
 			## for plot
 			# ROC
 			plt.figure(1)
@@ -122,9 +159,11 @@ if cvFold > 0:
 			precision, recall, _ = precision_recall_curve(y_test, predp)
 			plt.plot(recall, precision,	label = "fold :" + str(fold))
 			## for score
-			print("ROC\t{0:.3f}\tPRC\t{1:.3f}".format(auROC, auPRC))
-			s1s.append(auROC)
-			s2s.append(auPRC)
+			print("Sensitivity\t{0:.3f}\tSpecificity\t{1:.3f}\tROC\t{2:.3f}\tPRC\t{3:.3f}".format(sensitivity, specificity, auROC, auPRC))
+			s1s.append(sensitivity)
+			s2s.append(specificity)
+			s3s.append(auROC)
+			s4s.append(auPRC)
 		else:
 			r2 = r2_score(y_test, pred)
 			varExp = explained_variance_score(y_test, pred)
@@ -134,7 +173,7 @@ if cvFold > 0:
 		# for predFile
 		preds += list(pred)
 		Ys += list(y_test)
-	print("{}\t{}\t{}\t{}".format(round(mean(s1s),3), round(std(s1s),3), round(mean(s2s),3), round(std(s2s),3)))
+	print("{}\t{}\t{}\t{}".format(round(mean(s1s),3), round(mean(s2s),3), round(mean(s3s),3), round(mean(s4s),3)))
 
 	if mode in ["classification", "c", "C"]:
 		## plotting: ROC curve
@@ -179,9 +218,8 @@ with open(impFile, "w") as f:
 if cvFold <= 0:
 	if mode in ["classification", "c", "C"]:
 		predp = modelFull.predict_proba(X)[:,1]
-		auROC = roc_auc_score(y, predp)
-		auPRC = average_precision_score(y, predp)
-		print("ROC\t{0:.3f}\tPRC\t{1:.3f}".format(auROC, auPRC))
+		sensitivity, specificity, auPRC, auROC = get_performance(y, predp)
+		print("Sensitivity\t{0:.3f}\tSpecificity\t{1:.3f}\tROC\t{2:.3f}\tPRC\t{3:.3f}".format(sensitivity, specificity, auROC, auPRC))
 	else:
 		r2 = r2_score(y, predFull)
 		varExp = explained_variance_score(y, predFull)
