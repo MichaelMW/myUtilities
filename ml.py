@@ -136,6 +136,7 @@ if cvFold > 0:
 	s1s, s2s, s3s, s4s = [], [], [], []
 	preds, Ys = [], []
 	fold = 0
+	print("Fold\tSens\tSpec\tauROC\tauPRC")
 	for train_index, test_index in kf.split(X):
 		fold += 1
 		X_train, X_test = X.iloc[train_index,:], X.iloc[test_index,:]
@@ -159,7 +160,7 @@ if cvFold > 0:
 			precision, recall, _ = precision_recall_curve(y_test, predp)
 			plt.plot(recall, precision,	label = "fold :" + str(fold))
 			## for score
-			print("Sensitivity\t{0:.3f}\tSpecificity\t{1:.3f}\tROC\t{2:.3f}\tPRC\t{3:.3f}".format(sensitivity, specificity, auROC, auPRC))
+			print("{0:d}\t{1:.3f}\t{2:.3f}\t{3:.3f}\t{4:.3f}".format(fold, sensitivity, specificity, auROC, auPRC))
 			s1s.append(sensitivity)
 			s2s.append(specificity)
 			s3s.append(auROC)
@@ -173,7 +174,7 @@ if cvFold > 0:
 		# for predFile
 		preds += list(pred)
 		Ys += list(y_test)
-	print("{}\t{}\t{}\t{}".format(round(mean(s1s),3), round(mean(s2s),3), round(mean(s3s),3), round(mean(s4s),3)))
+	print("Avg:\t{}\t{}\t{}\t{}".format(round(mean(s1s),3), round(mean(s2s),3), round(mean(s3s),3), round(mean(s4s),3)))
 
 	if mode in ["classification", "c", "C"]:
 		## plotting: ROC curve
@@ -219,7 +220,8 @@ if cvFold <= 0:
 	if mode in ["classification", "c", "C"]:
 		predp = modelFull.predict_proba(X)[:,1]
 		sensitivity, specificity, auPRC, auROC = get_performance(y, predp)
-		print("Sensitivity\t{0:.3f}\tSpecificity\t{1:.3f}\tROC\t{2:.3f}\tPRC\t{3:.3f}".format(sensitivity, specificity, auROC, auPRC))
+		print("Sens\tSpec\tauROC\tauPRC")
+		print("{0:.3f}\t{1:.3f}\t{2:.3f}\t{3:.3f}".format(sensitivity, specificity, auROC, auPRC))
 	else:
 		r2 = r2_score(y, predFull)
 		varExp = explained_variance_score(y, predFull)
