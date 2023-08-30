@@ -8,12 +8,14 @@
 # - bashplotlib (install with 'pip install bashplotlib')
 # 
 # Usage:
-#   ./file_creation_histogram.sh [DIRECTORY] [FILEPATTERN] [BINS]
+#   ./file_creation_histogram.sh [DIRECTORY] [FILEPATTERN] [BINS] [USE_CURRENT_TIME]
 # 
 # Parameters:
 #   DIRECTORY   : The root directory to start the search. Default is current directory.
 #   FILEPATTERN: The file pattern to search for. Default is all files (*).
 #   BINS       : Number of bins for the histogram. Default is 100.
+#	USE_CURRENT_TIME 	: Include current time. Default to 1 as True.
+#	
 # 
 # Example:
 #   ./file_creation_histogram.sh ./data/ "*.gz" 50
@@ -29,10 +31,17 @@ if ! command -v hist &> /dev/null; then
 fi
 
 # Defaults
-INKW=${1:-"."}          # input directory
-FILEPATTERN=${2:-"*"}   # file pattern to search for
-BINS=${3:-"100"}        # number of bins
+INKW=${1:-"."}          	# input directory
+FILEPATTERN=${2:-"*"}   	# file pattern to search for
+BINS=${3:-"100"}        	# number of bins
+USE_CURRENT_TIME=${4:-"1"}	# include current time, default to 1 as yes. 
 
-# Collect timestamps and plot histogram
-find $INKW -type f -name "$FILEPATTERN" -print0 | xargs -0 stat --format '%Y' | hist -b $BINS
+
+if [ $USE_CURRENT_TIME -eq 1 ]; then
+	# Collect timestamps and plot histogram with current time
+	(find $INKW -type f -name "$FILEPATTERN" -print0 | xargs -0 stat --format '%Y'; date +%s) | hist -b $BINS
+else
+	# Collect timestamps and plot histogram
+	find $INKW -type f -name "$FILEPATTERN" -print0 | xargs -0 stat --format '%Y' | hist -b $BINS
+fi
 
