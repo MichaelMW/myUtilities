@@ -36,12 +36,18 @@ FILEPATTERN=${2:-"*"}   	# file pattern to search for
 BINS=${3:-"100"}        	# number of bins
 USE_CURRENT_TIME=${4:-"1"}	# include current time, default to 1 as yes. 
 
+# Determine OS and set the appropriate stat command
+if [[ "$OSTYPE" == "darwin"* ]]; then
+	STAT_CMD="stat -f '%m'"
+else
+    STAT_CMD="stat --format '%Y'"
+fi
 
 if [ $USE_CURRENT_TIME -eq 1 ]; then
 	# Collect timestamps and plot histogram with current time
-	(find $INKW -type f -name "$FILEPATTERN" -print0 | xargs -0 stat --format '%Y'; date +%s) | hist -b $BINS
+	(find $INKW -type f -name "$FILEPATTERN" -print0 | xargs -0 $STAT_CMD | tr -d "'"  ; date +%s) | hist -b $BINS
 else
 	# Collect timestamps and plot histogram
-	find $INKW -type f -name "$FILEPATTERN" -print0 | xargs -0 stat --format '%Y' | hist -b $BINS
+	find $INKW -type f -name "$FILEPATTERN" -print0 | xargs -0 $STAT_CMD  | tr -d "'"  | hist -b $BINS
 fi
 
