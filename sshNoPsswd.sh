@@ -1,32 +1,28 @@
 #!/bin/bash
 
-# This script automatically adds an authorized key to a remote server
-
 # Usage: script_name user@server [-p port]
 
 # Default SSH port
 PORT=22
+SSH_TARGET=""
 
-# Parse options
-while getopts ":p:" opt; do
-  case ${opt} in
-    p )
-      PORT=$OPTARG
-      ;;
-    \? )
-      echo "Invalid option: -$OPTARG" >&2
-      exit 1
-      ;;
-    : )
-      echo "Option -$OPTARG requires an argument." >&2
-      exit 1
-      ;;
-  esac
+# Flag to indicate if the next argument is the port number
+NEXT_IS_PORT=false
+
+# Parse arguments
+for arg in "$@"; do
+    if [ "$NEXT_IS_PORT" = true ]; then
+        PORT=$arg
+        NEXT_IS_PORT=false
+    elif [ "$arg" = "-p" ]; then
+        NEXT_IS_PORT=true
+    elif [ -z "$SSH_TARGET" ]; then
+        SSH_TARGET=$arg
+    fi
 done
-shift $((OPTIND -1))
 
-# Assign user@server to a variable
-SSH_TARGET=$1
+echo "Using port: $PORT"
+echo "SSH target: $SSH_TARGET"
 
 # Check if SSH key exists, generate if not
 if [ ! -f ~/.ssh/id_rsa.pub ]; then
